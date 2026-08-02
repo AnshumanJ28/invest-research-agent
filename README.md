@@ -67,27 +67,51 @@ flowchart TD
 
 ## 4. Project Structure
 
+This is the full intended structure for the project, not just what exists today. Each top-level folder is marked with its current status.
+
 ```
-├── analysis/                # Analysis & NLP layer — fully implemented & tested
-│   ├── schemas.py           # Shared output contracts (RatioResult, SentimentResult, etc.)
-│   ├── ratios.py            # Liquidity / profitability / leverage / valuation ratios
-│   ├── sentiment.py         # FinBERT / TextBlob sentiment scoring
-│   ├── competitors.py       # Peer selection & side-by-side comparison
-│   ├── interpretation.py    # Threshold-based healthy/watch/concerning evaluation
-│   └── utils.py             # Financial & metadata adapter utilities
+├── ingestion/                 [DONE]  Data Ingestion layer — all 4 agents working
+│   ├── schemas.py                    Strict data contracts (citation metadata, doc types)
+│   ├── storage.py                    PostgreSQL persistence layer + DDL schemas
+│   ├── yfinance_agent.py             Financial statements & market data (yfinance)
+│   ├── edgar_agent.py                Exchange filing scraper (BSE)
+│   ├── news_agent.py                 News aggregation (NewsAPI) + dedup/relevance filter
+│   ├── transcript_agent.py           Earnings call transcripts (Motley Fool scraping)
+│   └── utils.py                      Retry logic, caching, rate limiting
 │
-├── ingestion/                # Data Ingestion layer — all 4 agents working
-│   ├── schemas.py           # Strict data contracts (citation metadata, doc types)
-│   ├── storage.py           # PostgreSQL persistence layer + DDL schemas
-│   ├── yfinance_agent.py    # Financial statements & market data (yfinance)
-│   ├── edgar_agent.py       # Exchange filing scraper (BSE)
-│   ├── news_agent.py        # News aggregation (NewsAPI) + dedup/relevance filter
-│   ├── transcript_agent.py  # Earnings call transcripts (Motley Fool scraping)
-│   └── utils.py             # Retry logic, caching, rate limiting
+├── analysis/                  [DONE]  Analysis & NLP layer — fully implemented & tested
+│   ├── schemas.py                    Shared output contracts (RatioResult, SentimentResult, etc.)
+│   ├── ratios.py                     Liquidity / profitability / leverage / valuation ratios
+│   ├── sentiment.py                  FinBERT / TextBlob sentiment scoring
+│   ├── competitors.py                Peer selection & side-by-side comparison
+│   ├── interpretation.py             Threshold-based healthy/watch/concerning evaluation
+│   └── utils.py                      Financial & metadata adapter utilities
 │
-├── tests/                    # Unit test suite — 26 passing
-├── pipeline_test.py          # Parallel smoke test across all ingestion agents
-├── run_analysis_pipeline.py  # End-to-end entry point: ticker in, analysis out
+├── rag/                        [NOT STARTED]  Memo Generation layer
+│   ├── schemas.py                    Shared output schemas — memo + citation map contract
+│   ├── chunking.py                   Section-aware / speaker-turn-aware document chunking
+│   ├── embeddings.py                 Embedding model + vector store integration
+│   ├── retrieval.py                  Per-section retrieval logic
+│   ├── memo_generator.py             LLM prompt template + citation-grounded synthesis
+│   ├── verification.py               Faithfulness check: claim-to-source verification
+│   └── utils.py                      Citation ID mapping, formatting helpers
+│
+├── backend/                    [NOT STARTED]  Orchestration & API layer
+│   ├── main.py                       FastAPI app entry point
+│   ├── routes/                       POST /research, GET /research/{job_id}, etc.
+│   ├── orchestration/                LangGraph pipeline wiring ingestion, analysis, rag together
+│   └── db/                           Shared PostgreSQL connection/session handling
+│
+├── frontend/                   [NOT STARTED]  React dashboard
+│   ├── src/                          Ticker search, cited memo display, charts
+│   └── ...                           PDF export, comparison/sentiment visualizations
+│
+├── workflows/                  [NOT STARTED]  Scheduled monitoring
+│   └── watchlist_monitor.json        n8n workflow: schedule trigger, POST /research per ticker
+│
+├── tests/                      [PARTIAL]  Unit test suite — 26 passing (ingestion + analysis only)
+├── pipeline_test.py             [DONE]  Parallel smoke test across all ingestion agents
+├── run_analysis_pipeline.py     [DONE]  End-to-end entry point: ticker in, analysis out
 ├── requirements.txt
 ├── .env.example
 └── .gitignore
