@@ -15,6 +15,13 @@ properly.
 import inspect
 import sys
 
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass
+
+
 
 def run_test_yfinance_agent(ticker: str) -> None:
     try:
