@@ -1,6 +1,13 @@
 import sys
 import os
 from pathlib import Path
+
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass
+
 from types import SimpleNamespace
 from datetime import datetime, timezone
 
