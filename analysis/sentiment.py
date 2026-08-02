@@ -36,6 +36,13 @@ import os
 # is located inside the CWD, causing NLTK to mistakenly block standard imports.
 os.environ["NLTK_DISABLE_IMPORT_SECURITY"] = "1"
 
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass
+
+
 from datetime import datetime, timezone
 from typing import Any
 
