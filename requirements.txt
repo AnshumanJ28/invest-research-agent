@@ -1,0 +1,7 @@
+# Ingestion
+yfinance
+requests
+pydantic>=2
+pdfplumber
+PyPDF2
+bse
