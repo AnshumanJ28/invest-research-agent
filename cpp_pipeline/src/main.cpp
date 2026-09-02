@@ -1,5 +1,7 @@
 #include <iostream>
 #include <string>
+#include <cstdlib>
+#include <cctype>
 #include "news_agent.h"
 #include "yfinance_agent.h"
 #include "transcript_agent.h"
@@ -36,10 +38,59 @@ std::map<std::string, std::string> load_env(const std::string& path) {
     return env;
 }
 
+bool is_safe_ticker(const std::string& ticker) {
+    if (ticker.empty() || ticker.size() > 25) return false;
+    for (char ch : ticker) {
+        unsigned char uch = static_cast<unsigned char>(ch);
+        if (!std::isalnum(uch) && ch != '.' && ch != '_' && ch != '-') {
+            return false;
+        }
+    }
+    return true;
+}
+
+bool env_flag_enabled(const std::map<std::string, std::string>& env, const std::string& name) {
+    auto found = env.find(name);
+    if (found == env.end()) return false;
+    std::string value = found->second;
+    for (char& ch : value) {
+        ch = static_cast<char>(std::tolower(static_cast<unsigned char>(ch)));
+    }
+    return value == "1" || value == "true" || value == "yes" || value == "on";
+}
+
+int run_rag_pipeline(const std::string& ticker) {
+#ifdef _WIN32
+    std::string command =
+        "if exist rag\\main.py (py -3.10 -m rag.main " + ticker + ") "
+        "else if exist ..\\rag\\main.py (cd /d .. && py -3.10 -m rag.main " + ticker + ") "
+        "else if exist ..\\..\\rag\\main.py (cd /d ..\\.. && py -3.10 -m rag.main " + ticker + ") "
+        "else (echo [ERROR] Could not locate rag\\main.py & exit /b 1)";
+#else
+    std::string command =
+        "if [ -f rag/main.py ]; then python3 -m rag.main " + ticker + "; "
+        "elif [ -f ../rag/main.py ]; then cd .. && python3 -m rag.main " + ticker + "; "
+        "elif [ -f ../../rag/main.py ]; then cd ../.. && python3 -m rag.main " + ticker + "; "
+        "else echo '[ERROR] Could not locate rag/main.py'; exit 1; fi";
+#endif
+    return std::system(command.c_str());
+}
+
 int main(int argc, char* argv[]) {
     std::string ticker = "INFY.NS";
-    if (argc > 1) {
-        ticker = argv[1];
+    bool skip_rag = false;
+    for (int i = 1; i < argc; ++i) {
+        std::string arg = argv[i];
+        if (arg == "--skip-rag") {
+            skip_rag = true;
+        } else {
+            ticker = arg;
+        }
+    }
+
+    if (!is_safe_ticker(ticker)) {
+        std::cerr << "[ERROR] Invalid ticker. Use letters, numbers, '.', '_', or '-' only." << std::endl;
+        return 1;
     }
     
     std::cout << "=== Running C++ Analysis Pipeline for " << ticker << " ===" << std::endl;
@@ -155,6 +206,20 @@ int main(int argc, char* argv[]) {
     }
 
     std::cout << "\n=== Pipeline complete! All data fetched, analyzed, and stored in SQLite. ===" << std::endl;
+
+    if (skip_rag || env_flag_enabled(env, "SKIP_RAG")) {
+        std::cout << "\n--- Skipping Role 3 RAG memo generation ---" << std::endl;
+        return 0;
+    }
+
+    std::cout << "\n--- Running Role 3 RAG Memo Generation ---" << std::endl;
+    int rag_status = run_rag_pipeline(ticker);
+    if (rag_status != 0) {
+        std::cerr << "[ERROR] Core pipeline completed, but Role 3 RAG memo generation failed with status "
+                  << rag_status << "." << std::endl;
+        return rag_status;
+    }
+    std::cout << "--- Role 3 RAG memo generation complete ---" << std::endl;
 
     return 0;
 }

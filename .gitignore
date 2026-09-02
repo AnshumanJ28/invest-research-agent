@@ -25,3 +25,8 @@ Thumbs.db
 cpp_pipeline/build/
 invest.sqlite
 cpp_pipeline/invest.sqlite
+
+# RAG local runtime artifacts
+rag/.cache/
+rag/.deps/
+rag/output/
