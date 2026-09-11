@@ -38,7 +38,6 @@ rag/output/
 # FMP pipeline runtime artifacts
 cache/
 json/
-reports/
 
 # Backend
 backend/__pycache__/
