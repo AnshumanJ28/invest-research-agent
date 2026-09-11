@@ -8,17 +8,12 @@
 #include <vector>
 #include <sqlite3.h>
 #include <nlohmann/json.hpp>
-
 using json = nlohmann::json;
-
-// ─── Helpers ────────────────────────────────────────────────────────────────
-
 static std::string fmt_double(double val, int precision = 4) {
     std::ostringstream ss;
     ss << std::fixed << std::setprecision(precision) << val;
     return ss.str();
 }
-
 static std::string fmt_metric(const std::string& name, double val) {
     if (name.find("margin") != std::string::npos ||
         name.find("roe") != std::string::npos ||
@@ -44,7 +39,6 @@ static std::string fmt_metric(const std::string& name, double val) {
         return fmt_double(val, 2) + "x";
     }
 }
-
 static std::string prettify_name(std::string name) {
     for (char& c : name) { if (c == '_') c = ' '; }
     bool cap = true;
@@ -58,9 +52,6 @@ static std::string prettify_name(std::string name) {
     }
     return name;
 }
-
-// ─── Main function ──────────────────────────────────────────────────────────
-
 std::string JsonSnapshotWriter::generate_snapshot(const std::string& ticker,
                                                    const std::string& generation_id,
                                                    const std::string& db_path,
@@ -70,21 +61,15 @@ std::string JsonSnapshotWriter::generate_snapshot(const std::string& ticker,
         std::cerr << "[JsonSnapshot] Failed to open DB: " << db_path << "\n";
         return "";
     }
-
-    // Build output paths
     std::string base_name = ticker + "_" + generation_id;
     std::string json_filename = base_name + ".json";
     std::string pdf_filename  = base_name + ".pdf";
     std::string json_path = output_dir + "/" + json_filename;
     std::string pdf_path  = output_dir + "/" + pdf_filename;
-
-    // ── Root JSON object ──
     json snapshot;
     snapshot["generation_id"] = generation_id;
     snapshot["ticker"]        = ticker;
     snapshot["pdf_path"]      = "reports/" + pdf_filename;
-
-    // ── 1. Investment Assessment ──
     {
         std::string q = "SELECT composite_score, conviction_label FROM investment_assessment WHERE ticker = '" + ticker + "';";
         sqlite3_stmt* st;
@@ -96,8 +81,6 @@ std::string JsonSnapshotWriter::generate_snapshot(const std::string& ticker,
         }
         sqlite3_finalize(st);
     }
-
-    // ── 2. Aggregate Sentiment ──
     {
         std::string q = "SELECT overall_label, overall_score FROM aggregate_sentiment WHERE ticker = '" + ticker + "';";
         sqlite3_stmt* st;
@@ -111,8 +94,6 @@ std::string JsonSnapshotWriter::generate_snapshot(const std::string& ticker,
         sqlite3_finalize(st);
         snapshot["sentiment"] = sent_obj;
     }
-
-    // ── 3. Financial Ratios ──
     {
         std::string q = "SELECT ratio_name, category, value, health_flag, narrative, status, note "
                         "FROM financial_ratios WHERE ticker = '" + ticker + "';";
@@ -128,7 +109,6 @@ std::string JsonSnapshotWriter::generate_snapshot(const std::string& ticker,
                 std::string narr   = (sqlite3_column_text(st, 4)) ? reinterpret_cast<const char*>(sqlite3_column_text(st, 4)) : "";
                 std::string status = (sqlite3_column_text(st, 5)) ? reinterpret_cast<const char*>(sqlite3_column_text(st, 5)) : "CALCULATED";
                 std::string note   = (sqlite3_column_text(st, 6)) ? reinterpret_cast<const char*>(sqlite3_column_text(st, 6)) : "";
-
                 r["name"]           = name;
                 r["display_name"]   = prettify_name(name);
                 r["category"]       = cat;
@@ -136,7 +116,6 @@ std::string JsonSnapshotWriter::generate_snapshot(const std::string& ticker,
                 r["narrative"]      = narr;
                 r["status"]         = status;
                 r["note"]           = note;
-
                 if (status == "CALCULATED") {
                     r["value"]         = val;
                     r["formatted"]     = fmt_metric(name, val);
@@ -144,15 +123,12 @@ std::string JsonSnapshotWriter::generate_snapshot(const std::string& ticker,
                     r["value"]         = nullptr;
                     r["formatted"]     = "[" + status + "]";
                 }
-
                 ratios_arr.push_back(r);
             }
         }
         sqlite3_finalize(st);
         snapshot["ratios"] = ratios_arr;
     }
-
-    // ── 4. Key Statistics ──
     {
         std::string q = "SELECT line_items FROM financial_statements WHERE ticker = '" + ticker + "' AND statement_type = 'KEY_STATS';";
         sqlite3_stmt* st;
@@ -181,8 +157,6 @@ std::string JsonSnapshotWriter::generate_snapshot(const std::string& ticker,
         sqlite3_finalize(st);
         snapshot["key_statistics"] = key_stats;
     }
-
-    // ── 5. Sentiment Excerpts ──
     {
         std::string q = "SELECT segment, excerpt, label, confidence, source_url, published_at "
                         "FROM sentiment_excerpts WHERE ticker = '" + ticker + "';";
@@ -198,7 +172,6 @@ std::string JsonSnapshotWriter::generate_snapshot(const std::string& ticker,
                 ex["confidence"]   = sqlite3_column_double(st, 3);
                 ex["source_url"]   = (sqlite3_column_text(st, 4)) ? reinterpret_cast<const char*>(sqlite3_column_text(st, 4)) : "";
                 ex["published_at"] = (sqlite3_column_text(st, 5)) ? reinterpret_cast<const char*>(sqlite3_column_text(st, 5)) : "";
-
                 if (segment == "NEWS") {
                     news_arr.push_back(ex);
                 } else {
@@ -210,8 +183,6 @@ std::string JsonSnapshotWriter::generate_snapshot(const std::string& ticker,
         snapshot["news_excerpts"]       = news_arr;
         snapshot["transcript_excerpts"] = transcript_arr;
     }
-
-    // ── 6. Peer Benchmarks ──
     {
         std::string q = "SELECT peer_ticker, ratio_name, ticker_value, peer_value, premium_discount "
                         "FROM peer_benchmarks WHERE ticker = '" + ticker + "';";
@@ -231,10 +202,7 @@ std::string JsonSnapshotWriter::generate_snapshot(const std::string& ticker,
         sqlite3_finalize(st);
         snapshot["peer_benchmarks"] = peers_arr;
     }
-
     sqlite3_close(db);
-
-    // ── Write JSON to file ──
     std::ofstream out(json_path);
     if (!out.is_open()) {
         std::cerr << "[JsonSnapshot] Failed to write: " << json_path << "\n";
@@ -242,9 +210,7 @@ std::string JsonSnapshotWriter::generate_snapshot(const std::string& ticker,
     }
     out << snapshot.dump(2);
     out.close();
-
     std::cout << "[C++] Generated JSON snapshot: " << json_path << "\n";
-    // Also print the generation_id for downstream Java usage
     std::cout << "[GENERATION_ID] " << generation_id << "\n";
     return json_path;
 }

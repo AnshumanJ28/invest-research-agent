@@ -3,54 +3,32 @@
 #include <cctype>
 #include <cmath>
 #include <sstream>
-
-// ═══════════════════════════════════════════════════════════════════════════
-//  LexiconScore methods
-// ═══════════════════════════════════════════════════════════════════════════
-
 double LexiconScore::net_score() const {
     int sentiment_words = positive_count + negative_count;
     if (sentiment_words == 0 || total_words == 0) return 0.0;
-
-    // Net polarity normalized by total sentiment-bearing words
     double raw = static_cast<double>(positive_count - negative_count) / sentiment_words;
-
-    // Scale by sentiment density (what fraction of words are sentiment-bearing)
     double density = static_cast<double>(sentiment_words) / total_words;
-    // Cap density multiplier at 1.0 (don't amplify beyond raw)
     double density_boost = std::min(1.0, density * 5.0);
-
-    // Uncertainty penalizes confidence, pushing score toward 0
     double uncertainty_penalty = 1.0;
     if (total_words > 0) {
         double uncertainty_ratio = static_cast<double>(uncertainty_count) / total_words;
         uncertainty_penalty = std::max(0.5, 1.0 - uncertainty_ratio * 3.0);
     }
-
     double score = raw * density_boost * uncertainty_penalty;
     return std::max(-1.0, std::min(1.0, score));
 }
-
 std::string LexiconScore::label() const {
     double s = net_score();
     if (s > 0.10)  return "POSITIVE";
     if (s < -0.10) return "NEGATIVE";
     return "NEUTRAL";
 }
-
 double LexiconScore::confidence() const {
     int sentiment_words = positive_count + negative_count;
     if (sentiment_words == 0 || total_words == 0) return 0.0;
-
-    // Confidence = proportion of text that is sentiment-bearing, capped at 1.0
     double density = static_cast<double>(sentiment_words) / total_words;
-    return std::min(1.0, density * 4.0);  // Scale up: 25% density → 1.0 confidence
+    return std::min(1.0, density * 4.0);  
 }
-
-// ═══════════════════════════════════════════════════════════════════════════
-//  Tokenizer
-// ═══════════════════════════════════════════════════════════════════════════
-
 std::vector<std::string> LexiconSentiment::tokenize(const std::string& text) {
     std::vector<std::string> tokens;
     std::string word;
@@ -67,34 +45,16 @@ std::vector<std::string> LexiconSentiment::tokenize(const std::string& text) {
     if (!word.empty()) tokens.push_back(word);
     return tokens;
 }
-
-// ═══════════════════════════════════════════════════════════════════════════
-//  Loughran-McDonald Word Lists (Curated Core Subset)
-//
-//  Source: Loughran & McDonald (2011), "When Is a Liability Not a Liability?
-//          Textual Analysis, Dictionaries, and 10-Ks"
-//          Journal of Finance, 66(1), 35–65.
-//
-//  These are the highest-impact financial sentiment words from the full
-//  LM dictionary, covering the most frequently occurring terms in SEC
-//  filings, earnings calls, and financial news.
-// ═══════════════════════════════════════════════════════════════════════════
-
 LexiconSentiment::LexiconSentiment() {
-
-    // ── NEGATIVE words (~350 high-impact terms) ──
     negative_ = {
-        // Distress & Default
         "abandon", "abandoned", "abandonment", "abdicate", "abrupt", "abruptly",
         "abuse", "abuses", "abusive", "accident", "accidents", "accidental",
         "acquitted", "adulterate", "adulterated", "adulteration", "adversarial",
         "adverse", "adversely", "adversity", "allegation", "allegations", "allege",
         "alleged", "allegedly", "annulled", "anomalous", "anomaly",
-        // Financial Distress
         "arrears", "backdating", "bail", "bailout", "bankrupt", "bankruptcy",
         "blight", "breach", "breached", "breaches", "breakage", "breakdown",
         "bribe", "bribery", "burden", "burdensome",
-        // Losses & Declines
         "calamity", "cancel", "cancellation", "cancelled", "catastrophe",
         "catastrophic", "ceased", "censure", "censured", "closing",
         "coerce", "coercion", "collapse", "collapsed", "collusion",
@@ -106,7 +66,6 @@ LexiconSentiment::LexiconSentiment() {
         "correction", "corrective", "costly", "counterclaim", "counterfeit",
         "crime", "criminal", "criminally", "crisis", "critical", "critically",
         "criticism", "criticize", "curtail", "curtailment",
-        // D
         "damage", "damaged", "damages", "damaging", "danger", "dangerous",
         "deadlock", "deadweight", "debarment", "debarred", "deceptive",
         "decline", "declined", "declines", "declining", "defalcation",
@@ -136,7 +95,6 @@ LexiconSentiment::LexiconSentiment() {
         "divestiture", "doubt", "doubtful", "downgrade", "downgraded",
         "downsizing", "downturn", "downturns", "downward", "drag",
         "drop", "dropped", "drops", "drought", "duress",
-        // E–F
         "embargoed", "embargo", "embezzle", "embezzlement", "encumber",
         "encumbered", "endanger", "endangered", "erode", "eroded",
         "erosion", "erratic", "error", "errors", "escalate", "escalation",
@@ -152,7 +110,6 @@ LexiconSentiment::LexiconSentiment() {
         "flood", "flaw", "flawed", "fluctuate", "fluctuation",
         "foreclosure", "forfeit", "forfeiture", "fraud", "fraudulent",
         "freeze", "freezing",
-        // G–I
         "grievance", "gross", "guilt", "guilty", "hack", "hacked",
         "halt", "halted", "hamper", "hampered", "hardship", "harm",
         "harmful", "harshly", "hazard", "hazardous", "hinder",
@@ -173,7 +130,6 @@ LexiconSentiment::LexiconSentiment() {
         "interrupt", "interruption", "inundate", "invalid", "invalidate",
         "investigate", "investigation", "involuntary", "irregularity",
         "irrecoverable", "irrecoverable",
-        // J–O
         "jeopardize", "jeopardy",
         "kickback",
         "lack", "lacked", "lacking", "lapse", "lapsed", "late",
@@ -191,7 +147,6 @@ LexiconSentiment::LexiconSentiment() {
         "onerous", "oppose", "opposition", "outage", "overburdened",
         "overcharged", "overdue", "overestimate", "overleveraged",
         "overrun", "overstatement", "overvalued",
-        // P–R
         "panic", "penalize", "penalized", "penalty", "penalties",
         "peril", "perilous", "perjury", "perpetrate", "plagiarism",
         "plummet", "plummeted", "plunge", "plunged", "preclude",
@@ -206,7 +161,6 @@ LexiconSentiment::LexiconSentiment() {
         "restructuring", "retaliate", "retribution", "revoke",
         "revoked", "risk", "risked", "riskier", "risks", "risky",
         "runoff",
-        // S–Z
         "sabotage", "sacrifice", "sanction", "sanctioned", "scandal",
         "scrutiny", "seize", "seized", "seizure", "setback", "setbacks",
         "severe", "severely", "severity", "shortage", "shortages",
@@ -239,8 +193,6 @@ LexiconSentiment::LexiconSentiment() {
         "worsen", "worsened", "worsening", "worst", "worthless",
         "writedown", "writeoff", "wrongdoing", "wrongful"
     };
-
-    // ── POSITIVE words (~180 high-impact terms) ──
     positive_ = {
         "able", "abundance", "abundant", "accomplish", "accomplished",
         "accomplishment", "achieve", "achieved", "achievement", "achievements",
@@ -306,8 +258,6 @@ LexiconSentiment::LexiconSentiment() {
         "victory", "vigorous", "vital",
         "win", "winner", "winning", "won"
     };
-
-    // ── UNCERTAINTY words (~100 key terms) ──
     uncertainty_ = {
         "almost", "ambiguity", "ambiguous", "anomalous", "anomaly",
         "anticipate", "anticipated", "apparent", "apparently", "appear",
@@ -354,8 +304,6 @@ LexiconSentiment::LexiconSentiment() {
         "vagaries", "vague", "vaguely", "variability", "variable",
         "variation", "vary", "varying", "volatile", "volatility"
     };
-
-    // ── LITIGIOUS words (~80 key terms) ──
     litigious_ = {
         "adjudicate", "adjudicated", "adjudication", "allegation",
         "allegations", "allege", "alleged", "allegedly", "amend",
@@ -391,8 +339,6 @@ LexiconSentiment::LexiconSentiment() {
         "verdict", "verdicts", "violate", "violated", "violation",
         "violations", "witness", "witnesses"
     };
-
-    // ── STRONG MODAL words ──
     strong_modal_ = {
         "always", "best", "clearly", "definitely", "definitively",
         "certainly", "committed", "compelled", "essential",
@@ -400,8 +346,6 @@ LexiconSentiment::LexiconSentiment() {
         "necessary", "necessitate", "never", "obligated", "obligatory",
         "required", "shall", "strongest", "unequivocally", "will"
     };
-
-    // ── WEAK MODAL words ──
     weak_modal_ = {
         "almost", "apparently", "approximately", "conceivable",
         "conceivably", "could", "depend", "dependent", "depending",
@@ -414,8 +358,6 @@ LexiconSentiment::LexiconSentiment() {
         "suggest", "suggested", "suggesting", "suggests", "susceptible",
         "tend", "tended", "tends", "typically", "usually", "would"
     };
-
-    // ── FORWARD-LOOKING indicators ──
     forward_looking_ = {
         "aim", "aims", "anticipate", "anticipated", "anticipates",
         "anticipating", "believe", "believes", "could",
@@ -435,16 +377,10 @@ LexiconSentiment::LexiconSentiment() {
         "target", "targets", "will", "would"
     };
 }
-
-// ═══════════════════════════════════════════════════════════════════════════
-//  Score a text
-// ═══════════════════════════════════════════════════════════════════════════
-
 LexiconScore LexiconSentiment::score(const std::string& text) const {
     LexiconScore result;
     auto words = tokenize(text);
     result.total_words = static_cast<int>(words.size());
-
     for (const auto& w : words) {
         if (positive_.count(w))       result.positive_count++;
         if (negative_.count(w))       result.negative_count++;
@@ -454,6 +390,5 @@ LexiconScore LexiconSentiment::score(const std::string& text) const {
         if (weak_modal_.count(w))     result.weak_modal++;
         if (forward_looking_.count(w)) result.is_forward_looking = true;
     }
-
     return result;
 }
