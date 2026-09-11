@@ -55,7 +55,7 @@ flowchart TD
 ### Polyglot Engine Roles
 | Language | Role | Description |
 |---|---|---|
-| **Python** | *The Disguise* | Acts as a lightweight network scraper (handling Yahoo Finance cookies/crumbs, SEC Edgar, and News). It operates strictly as an asynchronous I/O layer to bypass Web Application Firewalls (WAFs). |
+| **Python** | *The Disguise* | Acts as a lightweight network scraper (handling Yahoo Finance cookies/crumbs). It operates strictly as an asynchronous I/O layer to bypass Web Application Firewalls (WAFs). |
 | **C++** | *The Engine* | Handles all heavy lifting: native SQLite parsing, complex mathematical ratio evaluations, and lexicon-based sentiment scoring. |
 | **C** | *The Accelerator* | Native SIMD libraries (`simd_math.c`) linked into the C++ engine for lightning-fast floating-point vector calculations. |
 | **Java** | *The Orchestrator* | Kicks off the Python scrapers, waits for completion, triggers the C++ engine, and natively renders the final Markdown into a pristine PDF document. |
@@ -172,7 +172,7 @@ The architecture has been thoroughly load-tested across the 10 Indian IT top-tie
 | MPHASIS.NS | ~10.17 |
 | KPITTECH.NS | ~10.17 |
 
-> **Note:** A full 8-10 seconds of this execution time is spent purely waiting on network I/O (fetching data over HTTPS via Python & Java). **The C++ Core AI Engine evaluates the entire dataset in exactly 1.0 second, and the Java PDF Native Renderer draws the PDF in ~200 milliseconds.**
+> **Note:** A full 8-10 seconds of this execution time is spent purely waiting on network I/O (fetching data over HTTPS via Python & Java). **The C++ Core Engine evaluates the entire dataset in exactly 1.0 second, and the Java PDF Native Renderer draws the PDF in ~200 milliseconds.**
 
 ---
 

@@ -10,7 +10,7 @@ public class Main {
         System.out.println("\n=== [Java] Starting Investment Pipeline for " + ticker + " ===");
         System.setProperty("java.awt.headless", "true");
         String generationId = String.valueOf(System.currentTimeMillis() / 1000L);
-        System.out.println("\n--- Stage 1: FMP Data Ingestion ---");
+        System.out.println("\n--- Stage 1: Yahoo Data Ingestion ---");
         ApiFetcher.fetchAll(ticker, generationId);
         System.out.println("\n--- Stage 2: C++ AI & Math Engine ---");
         System.out.println("  [Java] Delegating AI Inference, Math, and JSON Snapshot to C++ Engine...");
