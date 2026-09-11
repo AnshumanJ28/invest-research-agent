@@ -24,10 +24,7 @@ WORKDIR /app
 RUN python3 -m venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 
-# Download the ONNX model from GitHub Releases (so it doesn't bloat the git repo)
-# NOTE: Ensure you have uploaded finbert_int8.onnx to a GitHub Release tagged v1.0
-RUN mkdir -p /app/cpp/models && \
-    wget -O /app/cpp/models/finbert_int8.onnx "https://github.com/AnshumanJ28/invest-research-agent/releases/download/v1.0/finbert_int8.onnx" || echo "Model download failed, update the URL!"
+
 
 # Install Python dependencies
 COPY requirements.txt .
