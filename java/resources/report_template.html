@@ -1,0 +1,245 @@
+
+<html>
+<head>
+    <meta charset="UTF-8"/>
+    <title>Investment Research Report — {{TICKER}}</title>
+    <style>
+        /* ── Reset and Base ─────────────────────────────────────────── */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+            font-size: 10pt;
+            line-height: 1.55;
+            color: #1e293b;
+            margin: 0;
+            padding: 24px 28px;
+        }
+
+        /* ── Header Band ──────────────────────────────────────────── */
+        .header {
+            background: #ffffff;
+            color: #000000;
+            padding: 22px 28px;
+            margin: -24px -28px 24px -28px;
+            border-bottom: 2px solid #cbd5e1;
+            page-break-inside: avoid;
+        }
+        .header h1 {
+            font-size: 22pt;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            margin-bottom: 2px;
+        }
+        .header .subtitle {
+            font-size: 9pt;
+            color: #94a3b8;
+            letter-spacing: 0.3px;
+        }
+
+        /* ── Scorecard Row ────────────────────────────────────────── */
+        .scorecard {
+            display: -fs-table;       /* Flying Saucer table layout */
+            width: 100%;
+            margin-bottom: 20px;
+            page-break-inside: avoid;
+        }
+        .scorecard .card {
+            display: table-cell;
+            width: 25%;
+            padding: 12px 14px;
+            background: #f1f5f9;
+            border: 1px solid #e2e8f0;
+            text-align: center;
+            vertical-align: top;
+        }
+        .scorecard .card:first-child { border-radius: 6px 0 0 6px; }
+        .scorecard .card:last-child  { border-radius: 0 6px 6px 0; }
+        .card-label {
+            font-size: 8pt;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            margin-bottom: 4px;
+        }
+        .card-value {
+            font-size: 18pt;
+            font-weight: 700;
+            color: #0f172a;
+        }
+        .card-sub {
+            font-size: 8pt;
+            color: #475569;
+            margin-top: 2px;
+        }
+
+        /* ── Section Headers ──────────────────────────────────────── */
+        h2 {
+            font-size: 13pt;
+            font-weight: 700;
+            color: #0f172a;
+            border-bottom: 2px solid #3b82f6;
+            padding-bottom: 4px;
+            margin: 22px 0 10px 0;
+            page-break-after: avoid;
+        }
+        h3 {
+            font-size: 11pt;
+            font-weight: 600;
+            color: #1e40af;
+            margin: 14px 0 6px 0;
+            page-break-after: avoid;
+        }
+
+        /* ── Tables ───────────────────────────────────────────────── */
+        table {
+            -fs-table-paginate: paginate;
+            border-collapse: collapse;
+            width: 100%;
+            margin: 8px 0 16px 0;
+            font-size: 9pt;
+        }
+        tr { page-break-inside: avoid; }
+        th {
+            background-color: #1e3a5f;
+            color: #f8fafc;
+            padding: 6px 10px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 8pt;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+        }
+        td {
+            padding: 5px 10px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        tr:nth-child(even) td { background-color: #f8fafc; }
+
+        /* ── Health Badges ────────────────────────────────────────── */
+        .badge {
+            display: inline-block;
+            font-size: 7pt;
+            font-weight: 700;
+            padding: 2px 7px;
+            border-radius: 3px;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+        .badge-healthy    { background: #dcfce7; color: #166534; }
+        .badge-concerning { background: #fef3c7; color: #92400e; }
+        .badge-critical   { background: #fee2e2; color: #991b1b; }
+        .badge-neutral    { background: #e2e8f0; color: #475569; }
+
+        /* ── Sentiment Labels ─────────────────────────────────────── */
+        .sent-positive { color: #166534; font-weight: 600; }
+        .sent-negative { color: #991b1b; font-weight: 600; }
+        .sent-neutral  { color: #475569; font-weight: 600; }
+
+        /* ── Blockquote / Excerpts ────────────────────────────────── */
+        .excerpt {
+            border-left: 3px solid #94a3b8;
+            padding: 4px 10px;
+            margin: 4px 0 8px 0;
+            color: #334155;
+            font-style: italic;
+            font-size: 9pt;
+            page-break-inside: avoid;
+        }
+
+        /* ── Footer ───────────────────────────────────────────────── */
+        .footer {
+            margin-top: 30px;
+            padding-top: 8px;
+            border-top: 1px solid #cbd5e1;
+            font-size: 7pt;
+            color: #94a3b8;
+            text-align: center;
+        }
+
+        /* ── Utilities ────────────────────────────────────────────── */
+        .text-right  { text-align: right; }
+        .text-center { text-align: center; }
+        .text-muted  { color: #94a3b8; }
+        .mb-0 { margin-bottom: 0; }
+
+        @page {
+            size: A4;
+            margin: 18mm 15mm 18mm 15mm;
+            @bottom-center {
+                content: "Page " counter(page) " of " counter(pages);
+                font-size: 7pt;
+                color: #94a3b8;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════════════════ -->
+<!--  HEADER                                                           -->
+<!-- ═══════════════════════════════════════════════════════════════════ -->
+<div class="header">
+    <h1>{{TICKER}} — Investment Research Report</h1>
+    <div class="subtitle">Generated {{GENERATION_DATE}}  •  Report ID: {{GENERATION_ID}}</div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════ -->
+<!--  SCORECARD                                                        -->
+<!-- ═══════════════════════════════════════════════════════════════════ -->
+<div class="scorecard">
+    <div class="card">
+        <div class="card-label">Composite Score</div>
+        <div class="card-value">{{COMPOSITE_SCORE}}</div>
+        <div class="card-sub">out of 10.0</div>
+    </div>
+    <div class="card">
+        <div class="card-label">Conviction</div>
+        <div class="card-value" style="font-size:14pt;">{{CONVICTION_LABEL}}</div>
+        <div class="card-sub">&#160;</div>
+    </div>
+    <div class="card">
+        <div class="card-label">Sentiment</div>
+        <div class="card-value" style="font-size:14pt;">{{SENTIMENT_LABEL}}</div>
+        <div class="card-sub">Score: {{SENTIMENT_SCORE}}</div>
+    </div>
+    <div class="card">
+        <div class="card-label">Metrics Evaluated</div>
+        <div class="card-value">{{METRICS_COUNT}}</div>
+        <div class="card-sub">financial ratios</div>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════ -->
+<!--  FINANCIAL RATIOS                                                 -->
+<!-- ═══════════════════════════════════════════════════════════════════ -->
+<h2>Financial Ratios</h2>
+{{RATIOS_TABLE}}
+
+<!-- ═══════════════════════════════════════════════════════════════════ -->
+<!--  KEY STATISTICS                                                   -->
+<!-- ═══════════════════════════════════════════════════════════════════ -->
+<h2>Key Statistics</h2>
+{{KEY_STATS_TABLE}}
+
+<!-- ═══════════════════════════════════════════════════════════════════ -->
+<!--  NEWS & SENTIMENT                                                 -->
+<!-- ═══════════════════════════════════════════════════════════════════ -->
+<h2>News &amp; Sentiment Analysis</h2>
+{{NEWS_SECTION}}
+
+<!-- ═══════════════════════════════════════════════════════════════════ -->
+<!--  PEER COMPARISON                                                  -->
+<!-- ═══════════════════════════════════════════════════════════════════ -->
+<h2>Peer Comparison</h2>
+{{PEERS_TABLE}}
+
+<!-- ═══════════════════════════════════════════════════════════════════ -->
+<!--  FOOTER                                                           -->
+<!-- ═══════════════════════════════════════════════════════════════════ -->
+<div class="footer">
+    <em>Disclaimer: This research report is generated programmatically by an AI pipeline.
+    Do not use this report as the sole basis for any financial or investment decisions.</em>
+</div>
+
+</body>
+</html>

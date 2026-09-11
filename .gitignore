@@ -1,0 +1,44 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Caches
+.pytest_cache/
+.ipynb_checkpoints/
+
+# Virtual Environment
+venv/
+.venv/
+env/
+ENV/
+
+# OS-specific
+.DS_Store
+Thumbs.db
+
+# Project-specific local files & environment variables
+.env
+*.local
+
+# C++ Pipeline artifacts
+cpp_pipeline/
+cpp/build/
+cpp/models/*.onnx
+*.pdb
+invest.sqlite
+cpp/invest.sqlite
+# IDEs
+.vscode/
+# RAG local runtime artifacts
+rag/.cache/
+rag/.deps/
+rag/output/
+
+# FMP pipeline runtime artifacts
+cache/
+json/
+reports/
+
+# Backend
+backend/__pycache__/

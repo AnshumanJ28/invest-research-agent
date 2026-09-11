@@ -1,0 +1,13 @@
+# Ingestion
+yfinance
+requests
+pydantic>=2
+pdfplumber
+PyPDF2
+bse
+sentence-transformers
+faiss-cpu
+
+# PDF Export
+markdown
+xhtml2pdf

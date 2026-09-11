@@ -1,0 +1,14 @@
+# Web Server (FastAPI)
+fastapi
+uvicorn
+python-multipart
+
+# Auth & Logging (Supabase)
+supabase
+PyJWT
+python-dotenv
+
+# Python Scraper Pipeline
+yfinance
+curl-cffi
+requests
